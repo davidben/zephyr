@@ -98,6 +98,55 @@ ZMakeAuthentication(register ZNotice_t *notice,
 #endif
 }
 
+Code_t
+ZMakeAuthenticationSaveKey(register ZNotice_t *notice,
+			   char *buffer,
+			   int buffer_len,
+			   int *len)
+{
+#ifdef HAVE_KRB4
+    /* Key management not implemented for krb4. */
+    return ZMakeAuthentication(notice, buffer, buffer_len, len);
+#else
+    Code_t result;
+    krb5_creds *creds = NULL;
+    struct _Z_SessionKey *savedkey;
+
+    /* Look up creds and checksum the notice. */
+    if ((result = ZGetCreds(&creds)))
+	return result;
+    if ((result = Z_MakeZcodeAuthentication(notice, buffer, buffer_len, len,
+					    creds))) {
+	krb5_free_creds(Z_krb5_ctx, creds);
+	return result;
+    }
+
+    /* Save the key. */
+    savedkey = (struct _Z_SessionKey *)malloc(sizeof(struct _Z_SessionKey));
+    if (!savedkey) {
+	krb5_free_creds(Z_krb5_ctx, creds);
+	return ENOMEM;
+    }
+
+    if ((result = krb5_copy_keyblock_contents(Z_krb5_ctx, Z_credskey(creds),
+					      &savedkey->keyblock))) {
+	free(savedkey);
+	krb5_free_creds(Z_krb5_ctx, creds);
+	return result;
+    }
+
+    savedkey->prev = NULL;
+    savedkey->next = Z_keys_head;
+    if (Z_keys_head)
+	Z_keys_head->prev = savedkey;
+    Z_keys_head = savedkey;
+    if (!Z_keys_tail)
+	Z_keys_tail = savedkey;
+
+    return result;
+#endif
+}
+
 /* only used by server? */
 Code_t
 ZMakeZcodeAuthentication(register ZNotice_t *notice,

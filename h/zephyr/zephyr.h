@@ -153,6 +153,7 @@ int ZCompareMultiUIDPred(ZNotice_t *, void *);
 /* Defines for ZFormatNotice, et al. */
 typedef Code_t (*Z_AuthProc)(ZNotice_t*, char *, int, int *);
 Code_t ZMakeAuthentication(ZNotice_t*, char *,int, int*);
+Code_t ZMakeAuthenticationSaveKey(ZNotice_t*, char *,int, int*);
 Code_t ZMakeZcodeAuthentication(ZNotice_t*, char *,int, int*);
 Code_t ZMakeZcodeRealmAuthentication(ZNotice_t*, char *,int, int*, char*);
 Code_t ZResetAuthentication(void);
@@ -290,6 +291,7 @@ void Z_debug_stderr(const char *format, va_list args, void *closure);
 
 #define ZAUTH (ZMakeAuthentication)
 #define ZCAUTH (ZMakeZcodeAuthentication)
+#define ZSUBAUTH (ZMakeAuthenticationSaveKey)
 #define ZNOAUTH ((Z_AuthProc)0)
 
 /* Packet strings */
