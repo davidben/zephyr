@@ -110,6 +110,7 @@ ZMakeAuthenticationSaveKey(register ZNotice_t *notice,
 #else
     Code_t result;
     krb5_creds *creds = NULL;
+    krb5_keyblock *keyblock;
     struct _Z_SessionKey *savedkey;
 
     /* Look up creds and checksum the notice. */
@@ -122,28 +123,43 @@ ZMakeAuthenticationSaveKey(register ZNotice_t *notice,
     }
 
     /* Save the key. */
-    savedkey = (struct _Z_SessionKey *)malloc(sizeof(struct _Z_SessionKey));
-    if (!savedkey) {
-	krb5_free_creds(Z_krb5_ctx, creds);
-	return ENOMEM;
-    }
+    keyblock = Z_credskey(creds);
 
-    if ((result = krb5_copy_keyblock_contents(Z_krb5_ctx, Z_credskey(creds),
-					      &savedkey->keyblock))) {
-	free(savedkey);
-	krb5_free_creds(Z_krb5_ctx, creds);
-	return result;
-    }
-    savedkey->send_time = time(NULL);
-    savedkey->first_use = 0;
+    if (Z_keys_head &&
+	Z_keys_head->keyblock.enctype == keyblock->enctype &&
+	Z_keys_head->keyblock.length == keyblock->length &&
+	memcmp(Z_keys_head->keyblock.contents, keyblock->contents,
+	       keyblock->length) == 0) {
+	/*
+	 * Optimization: if the key hasn't changed, replace the current entry,
+	 * rather than make a new one.
+	 */
+	Z_keys_head->send_time = time(NULL);
+	Z_keys_head->first_use = 0;
+    } else {
+	savedkey = (struct _Z_SessionKey *)malloc(sizeof(struct _Z_SessionKey));
+	if (!savedkey) {
+	    krb5_free_creds(Z_krb5_ctx, creds);
+	    return ENOMEM;
+	}
 
-    savedkey->prev = NULL;
-    savedkey->next = Z_keys_head;
-    if (Z_keys_head)
-	Z_keys_head->prev = savedkey;
-    Z_keys_head = savedkey;
-    if (!Z_keys_tail)
-	Z_keys_tail = savedkey;
+	if ((result = krb5_copy_keyblock_contents(Z_krb5_ctx, keyblock,
+						  &savedkey->keyblock))) {
+	    free(savedkey);
+	    krb5_free_creds(Z_krb5_ctx, creds);
+	    return result;
+	}
+	savedkey->send_time = time(NULL);
+	savedkey->first_use = 0;
+
+	savedkey->prev = NULL;
+	savedkey->next = Z_keys_head;
+	if (Z_keys_head)
+	    Z_keys_head->prev = savedkey;
+	Z_keys_head = savedkey;
+	if (!Z_keys_tail)
+	    Z_keys_tail = savedkey;
+    }
 
     return result;
 #endif
