@@ -172,7 +172,7 @@ Code_t ZCheckZcodeAuthentication(ZNotice_t *notice,
 #ifdef HAVE_KRB5
     Code_t answer;
     krb5_creds *creds;
-    struct _Z_SessionKey *savedkey;
+    struct _Z_SessionKey *savedkey, *todelete;
 #endif
 
     /* If the value is already known, return it. */
@@ -189,8 +189,30 @@ Code_t ZCheckZcodeAuthentication(ZNotice_t *notice,
     /* Try each of the saved session keys. */
     for (savedkey = Z_keys_head; savedkey != NULL; savedkey = savedkey->next) {
 	answer = Z_CheckZcodeAuthentication(notice, from, &savedkey->keyblock);
-	if (answer == ZAUTH_YES)
+	if (answer == ZAUTH_YES) {
+	    /* Save the time of the first use of each key. */
+	    if (!savedkey->first_use) {
+		savedkey->first_use = time(NULL);
+	    } else {
+		/*
+		 * Any keys sent sufficiently long before this one is stale. If
+		 * we know it has been long enough since the server learned of
+		 * this key, we can prune keys made stale by this one.
+		 */
+		if (time(NULL) > savedkey->first_use + KEY_TIMEOUT) {
+		    while (Z_keys_tail &&
+			   Z_keys_tail->send_time + KEY_TIMEOUT < savedkey->send_time) {
+			todelete = Z_keys_tail;
+			Z_keys_tail = Z_keys_tail->prev;
+			Z_keys_tail->next = NULL;
+
+			krb5_free_keyblock_contents(Z_krb5_ctx, &todelete->keyblock);
+			free(todelete);
+		    }
+		}
+	    }
 	    return answer;
+	}
     }
 
     /*

@@ -134,6 +134,8 @@ ZMakeAuthenticationSaveKey(register ZNotice_t *notice,
 	krb5_free_creds(Z_krb5_ctx, creds);
 	return result;
     }
+    savedkey->send_time = time(NULL);
+    savedkey->first_use = 0;
 
     savedkey->prev = NULL;
     savedkey->next = Z_keys_head;
