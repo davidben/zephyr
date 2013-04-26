@@ -99,10 +99,10 @@ ZMakeAuthentication(register ZNotice_t *notice,
 }
 
 Code_t
-ZMakeAuthenticationSaveKey(register ZNotice_t *notice,
-			   char *buffer,
-			   int buffer_len,
-			   int *len)
+Z_MakeAuthenticationSaveKey(register ZNotice_t *notice,
+			    char *buffer,
+			    int buffer_len,
+			    int *len)
 {
 #ifdef HAVE_KRB4
     /* Key management not implemented for krb4. */

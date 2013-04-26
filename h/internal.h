@@ -36,6 +36,8 @@
 #define HM_SVC_FALLBACK		htons((unsigned short) 2104)
 #define HM_SRV_SVC_FALLBACK	htons((unsigned short) 2105)
 
+#define ZSUBAUTH (Z_MakeAuthenticationSaveKey)
+
 #define ZAUTH_UNSET		(-3) /* Internal to client library. */
 #define Z_MAXFRAGS		500	/* Max number of packet fragments */
 #define Z_MAXNOTICESIZE		400000	/* Max size of incoming notice */
@@ -155,6 +157,8 @@ Code_t Z_AsciiFormatRawHeader (ZNotice_t *, char *, int, int *, char **,
                                  int *, char **, char **);
 
 void Z_gettimeofday(struct _ZTimeval *ztv, struct timezone *tz);
+
+Code_t Z_MakeAuthenticationSaveKey(ZNotice_t*, char *,int, int*);
 
 #ifdef HAVE_KRB5
 int ZGetCreds(krb5_creds **creds_out);
