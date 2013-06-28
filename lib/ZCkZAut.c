@@ -188,7 +188,7 @@ Code_t ZCheckZcodeAuthentication(ZNotice_t *notice,
 #ifdef HAVE_KRB5
     /* Try each of the saved session keys. */
     for (savedkey = Z_keys_head; savedkey != NULL; savedkey = savedkey->next) {
-	answer = Z_CheckZcodeAuthentication(notice, from, &savedkey->keyblock);
+	answer = Z_CheckZcodeAuthentication(notice, from, savedkey->keyblock);
 	if (answer == ZAUTH_YES) {
 	    /* Save the time of the first use of each key. */
 	    if (!savedkey->first_use) {
@@ -206,7 +206,7 @@ Code_t ZCheckZcodeAuthentication(ZNotice_t *notice,
 			Z_keys_tail = Z_keys_tail->prev;
 			Z_keys_tail->next = NULL;
 
-			krb5_free_keyblock_contents(Z_krb5_ctx, &todelete->keyblock);
+			krb5_free_keyblock(Z_krb5_ctx, todelete->keyblock);
 			free(todelete);
 		    }
 		}

@@ -126,9 +126,9 @@ Z_MakeAuthenticationSaveKey(register ZNotice_t *notice,
     keyblock = Z_credskey(creds);
 
     if (Z_keys_head &&
-	Z_keys_head->keyblock.enctype == keyblock->enctype &&
-	Z_keys_head->keyblock.length == keyblock->length &&
-	memcmp(Z_keys_head->keyblock.contents, keyblock->contents,
+	Z_keys_head->keyblock->enctype == keyblock->enctype &&
+	Z_keys_head->keyblock->length == keyblock->length &&
+	memcmp(Z_keys_head->keyblock->contents, keyblock->contents,
 	       keyblock->length) == 0) {
 	/*
 	 * Optimization: if the key hasn't changed, replace the current entry,
@@ -143,8 +143,7 @@ Z_MakeAuthenticationSaveKey(register ZNotice_t *notice,
 	    return ENOMEM;
 	}
 
-	if ((result = krb5_copy_keyblock_contents(Z_krb5_ctx, keyblock,
-						  &savedkey->keyblock))) {
+	if ((result = krb5_copy_keyblock(Z_krb5_ctx, keyblock, &savedkey->keyblock))) {
 	    free(savedkey);
 	    krb5_free_creds(Z_krb5_ctx, creds);
 	    return result;

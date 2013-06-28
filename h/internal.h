@@ -90,7 +90,7 @@ Code_t Z_krb5_lookup_cksumtype(krb5_enctype, krb5_cksumtype *);
 struct _Z_SessionKey {
     struct _Z_SessionKey    *next;
     struct _Z_SessionKey    *prev;
-    krb5_keyblock	    keyblock;
+    krb5_keyblock	    *keyblock;
     time_t		    send_time;
     time_t		    first_use;
 };
