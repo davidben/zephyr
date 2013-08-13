@@ -160,6 +160,7 @@ Z_MakeAuthenticationSaveKey(register ZNotice_t *notice,
 	    Z_keys_tail = savedkey;
     }
 
+    krb5_free_creds(Z_krb5_ctx, creds);
     return result;
 #endif
 }
