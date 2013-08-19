@@ -375,8 +375,10 @@ Z_ReadWait(void)
 	return (ZERR_NONE);
 
     /* Ignore garbage at the end */
-    if (notice.z_message_len > partof - part)
+    if (notice.z_message_len > partof - part) {
+	packet_len -= notice.z_message_len - (partof - part);
 	notice.z_message_len = partof - part;
+    }
 
     /* Pick the appropriate key to reassemble with. */
     switch (notice.z_kind) {
